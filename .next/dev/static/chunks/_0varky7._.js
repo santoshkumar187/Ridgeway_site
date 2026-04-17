@@ -1870,10 +1870,10 @@ function Home() {
                 className: "flex-1 flex flex-col h-full overflow-hidden relative",
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
-                        className: "h-16 flex-col md:flex-row glass z-30 flex md:items-center justify-between px-4 md:px-6 shrink-0 border-b border-[var(--border-subtle)] overflow-x-auto custom-scrollbar",
+                        className: "min-h-[64px] md:h-16 flex-col md:flex-row glass z-30 flex md:items-center justify-between px-4 md:px-6 py-2 md:py-0 shrink-0 border-b border-[var(--border-subtle)] overflow-x-auto custom-scrollbar",
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "flex items-center gap-2 md:gap-4 my-2 md:my-0",
+                                className: "flex items-center gap-2 md:gap-4 my-1 md:my-0",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                         onClick: ()=>setIsSidebarOpen(!isSidebarOpen),

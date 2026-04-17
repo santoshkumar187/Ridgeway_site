@@ -192,8 +192,8 @@ export default function Home() {
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         
         {/* Top Header Row */}
-        <header className="h-16 flex-col md:flex-row glass z-30 flex md:items-center justify-between px-4 md:px-6 shrink-0 border-b border-[var(--border-subtle)] overflow-x-auto custom-scrollbar">
-          <div className="flex items-center gap-2 md:gap-4 my-2 md:my-0">
+        <header className="min-h-[64px] md:h-16 flex-col md:flex-row glass z-30 flex md:items-center justify-between px-4 md:px-6 py-2 md:py-0 shrink-0 border-b border-[var(--border-subtle)] overflow-x-auto custom-scrollbar">
+          <div className="flex items-center gap-2 md:gap-4 my-1 md:my-0">
             <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] hover:text-white transition-colors lg:hidden">
               <Menu size={20} />
             </button>

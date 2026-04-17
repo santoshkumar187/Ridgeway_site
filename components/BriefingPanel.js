@@ -85,7 +85,7 @@ export default function BriefingPanel({ events, agentDone, approved, onApprove }
                <div className="h-1.5 rounded-full bg-[rgba(255,255,255,0.05)] overflow-hidden">
                   <motion.div 
                     initial={{ width: 0 }}
-                    animate={{ width: `${(reviewedCount / events.length) * 100}%` }}
+                    animate={{ width: `${events.length > 0 ? (reviewedCount / events.length) * 100 : 0}%` }}
                     className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400"
                   />
                </div>
@@ -229,7 +229,7 @@ function BriefingSection({ sectionKey, section, content, editing, approved, onEd
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.2 }}
-      className="max-w-4xl mx-auto py-12 px-8 md:px-14 min-h-full flex flex-col font-sans"
+      className="max-w-4xl mx-auto py-6 md:py-12 px-4 md:px-14 min-h-full flex flex-col font-sans"
     >
       <div className="flex items-end justify-between mb-10 pb-6 border-b border-[rgba(255,255,255,0.05)] text-white">
         <div>

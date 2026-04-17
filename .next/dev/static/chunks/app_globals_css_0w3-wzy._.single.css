@@ -560,6 +560,10 @@
     margin-inline: auto;
   }
 
+  .my-1 {
+    margin-block: calc(var(--spacing) * 1);
+  }
+
   .my-2 {
     margin-block: calc(var(--spacing) * 2);
   }
@@ -781,6 +785,10 @@
 
   .min-h-\[40px\] {
     min-height: 40px;
+  }
+
+  .min-h-\[64px\] {
+    min-height: 64px;
   }
 
   .min-h-\[66px\] {
@@ -2628,6 +2636,12 @@
   }
 
   @media (min-width: 48rem) {
+    .md\:h-16 {
+      height: calc(var(--spacing) * 16);
+    }
+  }
+
+  @media (min-width: 48rem) {
     .md\:max-h-72 {
       max-height: calc(var(--spacing) * 72);
     }
@@ -2736,8 +2750,20 @@
   }
 
   @media (min-width: 48rem) {
+    .md\:py-0 {
+      padding-block: calc(var(--spacing) * 0);
+    }
+  }
+
+  @media (min-width: 48rem) {
     .md\:py-2 {
       padding-block: calc(var(--spacing) * 2);
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .md\:py-12 {
+      padding-block: calc(var(--spacing) * 12);
     }
   }
 
@@ -3399,6 +3425,53 @@ body:before {
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #8f9ca773 transparent;
+}
+
+@media print {
+  body {
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  .hide-on-print, header, nav, aside {
+    display: none !important;
+  }
+
+  .glass-panel {
+    box-shadow: none !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .print-only-block {
+    display: block !important;
+  }
+
+  .print-container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .print-wrapper {
+    color: #000 !important;
+    background: #fff !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .prose-dark {
+    color: #111 !important;
+  }
+
+  .prose-dark p {
+    color: #333 !important;
+  }
+
+  .text-white {
+    color: #000 !important;
+  }
 }
 
 @property --tw-translate-x {
