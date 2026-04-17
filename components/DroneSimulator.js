@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Navigation, Play, Pause, RotateCcw, CheckCircle, AlertTriangle, Wind, Scan, Radar } from "lucide-react";
-import { DRONE_ROUTES, OVERNIGHT_EVENTS } from "../lib/siteData";
+import { Navigation, Play, Pause, RotateCcw, CheckCircle, AlertTriangle, Wind, Scan, Radar, ShieldAlert, Target, Camera } from "lucide-react";
+import { DRONE_ROUTES, OVERNIGHT_EVENTS, ZONES } from "../lib/siteData";
 import { getFollowUpMission } from "../lib/intelligence";
 
 const droneRoute = Object.values(DRONE_ROUTES)[0];
@@ -12,8 +12,16 @@ export default function DroneSimulator({ events, agentDone, incidents = [] }) {
   const [currentWaypoint, setCurrentWaypoint] = useState(0);
   const [completed, setCompleted] = useState(false);
   const intervalRef = useRef(null);
+  
+  const [activeRoute, setActiveRoute] = useState(droneRoute);
+  const [isPlanningMode, setIsPlanningMode] = useState(false);
+  const [tempWaypoints, setTempWaypoints] = useState([]);
+  const [manualLat, setManualLat] = useState("");
+  const [manualLng, setManualLng] = useState("");
+  const [threatProfile, setThreatProfile] = useState(null);
+  const svgRef = useRef(null);
 
-  const waypoints = droneRoute.waypoints;
+  const waypoints = isPlanningMode ? tempWaypoints : activeRoute.waypoints;
 
   const reset = () => {
     setPlaying(false);
@@ -39,8 +47,84 @@ export default function DroneSimulator({ events, agentDone, incidents = [] }) {
     return () => clearInterval(intervalRef.current);
   }, [playing, completed, waypoints.length]);
 
-  const currentObs = droneRoute.observations.filter(o => o.waypoint <= currentWaypoint);
+  const currentObs = isPlanningMode ? [] : (activeRoute.observations ? activeRoute.observations.filter(o => o.waypoint <= currentWaypoint) : []);
   const followUpMission = getFollowUpMission(incidents);
+
+  const handleMapClick = (e) => {
+    if (!isPlanningMode || !svgRef.current) return;
+    const svg = svgRef.current;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const cursorPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+    
+    const lng = unnormalize(cursorPt.x, -0.098, -0.083, 50, 750);
+    const lat = unnormalize(cursorPt.y, 51.502, 51.512, 350, 50);
+    
+    const now = new Date();
+    setTempWaypoints(prev => [
+      ...prev,
+      {
+        coords: [lat, lng],
+        label: `Manual WP-${prev.length + 1}`,
+        time: now.toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" })
+      }
+    ]);
+  };
+
+  const handleAddManualCoords = () => {
+    if (!manualLat || !manualLng) return;
+    const lat = parseFloat(manualLat);
+    const lng = parseFloat(manualLng);
+    if (isNaN(lat) || isNaN(lng)) return;
+    setTempWaypoints(prev => [...prev, { 
+      coords: [lat, lng], 
+      label: `Input WP-${prev.length + 1}`, 
+      time: new Date().toLocaleTimeString("en-GB", { hour:"2-digit", minute:"2-digit" }) 
+    }]);
+    setManualLat("");
+    setManualLng("");
+  };
+
+  const analyzeThreat = () => {
+    if (tempWaypoints.length === 0) return;
+    const lastPoint = tempWaypoints[tempWaypoints.length - 1];
+    const [lat, lng] = lastPoint.coords;
+
+    const dist = (c1, c2) => Math.sqrt(Math.pow(c1[0]-c2[0], 2) + Math.pow(c1[1]-c2[1], 2));
+    
+    let activeZone = null;
+    let minDistance = Infinity;
+
+    ZONES.forEach(z => {
+      const d = dist(z.coords, [lat, lng]);
+      if (d < minDistance) {
+        minDistance = d;
+        activeZone = z;
+      }
+    });
+
+    const isRestricted = activeZone && activeZone.isRestricted && minDistance < 0.003;
+    const nearbyCamId = `CAM-${activeZone ? activeZone.id.split('-')[1].toUpperCase() : 'EXT'}-0${Math.floor(Math.random()*4)+1}`;
+    
+    setThreatProfile({
+      lat: lat.toFixed(5),
+      lng: lng.toFixed(5),
+      wind: "18 km/h (Gusts to 24)",
+      camera: nearbyCamId,
+      zone: activeZone ? activeZone.name : "Unzoned Perimeter",
+      threat: isRestricted 
+        ? "CRITICAL: Coordinates intersect Restricted Storage Yard. High probability of unauthorized asset access."
+        : "LOW: Sector is nominal. Correlate with standard overnight traffic.",
+      isRestricted
+    });
+  };
+
+  let droneX = 0, droneY = 0;
+  if (!isPlanningMode && waypoints[currentWaypoint]) {
+    droneX = normalize(waypoints[currentWaypoint].coords[1], -0.098, -0.083, 50, 750);
+    droneY = normalize(waypoints[currentWaypoint].coords[0], 51.502, 51.512, 350, 50);
+  }
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
@@ -55,28 +139,60 @@ export default function DroneSimulator({ events, agentDone, incidents = [] }) {
             </div>
             <div>
               <h2 className="text-xl font-bold tracking-wide text-white uppercase flex items-center gap-2">
-                UAS TELEMETRY: <span className="text-[var(--brand-blue)]">{droneRoute.droneId}</span>
+                UAS TELEMETRY: <span className="text-[var(--brand-blue)]">SD-7</span>
               </h2>
               <div className="text-xs font-mono mt-1 text-[var(--text-muted)] flex items-center gap-3">
-                <span className="px-2 py-0.5 rounded bg-[rgba(255,255,255,0.05)]">{droneRoute.name}</span>
-                <span>{droneRoute.startTime} – {droneRoute.endTime}</span>
+                <span className="px-2 py-0.5 rounded bg-[rgba(255,255,255,0.05)] text-emerald-400 font-bold">{activeRoute.name || "Live Patrol"}</span>
+                <span>{activeRoute.startTime || "--:--"} – {activeRoute.endTime || "--:--"}</span>
                 <span>Altitude: 35m</span>
               </div>
             </div>
             
             {/* Playback Controls */}
-            <div className="ml-auto flex items-center gap-3 bg-[rgba(0,0,0,0.3)] border border-[var(--border-subtle)] rounded-xl p-1.5 backdrop-blur">
-              <button onClick={() => { if (!completed) setPlaying(p => !p); }}
-                disabled={completed}
-                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(59,130,246,0.15)] text-white disabled:opacity-50"
-              >
-                {playing ? <Pause size={18} /> : <Play size={18} className="translate-x-0.5" />}
-              </button>
-              <button onClick={reset}
-                className="w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] hover:text-white"
-              >
-                <RotateCcw size={16} />
-              </button>
+            <div className="ml-auto flex items-center gap-1 md:gap-3 bg-[rgba(0,0,0,0.3)] border border-[var(--border-subtle)] rounded-xl lg:p-1.5 p-1 backdrop-blur overflow-x-auto">
+              {isPlanningMode ? (
+                 <>
+                   <button onClick={() => setTempWaypoints([])}
+                     className="px-2 md:px-3 h-8 md:h-10 rounded-lg text-xs font-semibold bg-[rgba(239,68,68,0.15)] text-[var(--brand-red)] hover:bg-[rgba(239,68,68,0.25)] transition-all">Clear</button>
+                   <button onClick={() => {
+                        if (tempWaypoints.length < 2) return;
+                        setActiveRoute({
+                          id: "manual-flight",
+                          name: "Manual Mission",
+                          droneId: "SD-7",
+                          startTime: tempWaypoints[0].time,
+                          endTime: tempWaypoints[tempWaypoints.length-1].time,
+                          waypoints: tempWaypoints,
+                          observations: tempWaypoints.map((_, i) => ({ waypoint: i, text: `Manual WP-${i+1} reached. Sensors nominal.`}))
+                        });
+                        setIsPlanningMode(false);
+                        reset();
+                        setPlaying(true);
+                     }}
+                     disabled={tempWaypoints.length < 2}
+                     className="px-2 md:px-3 h-8 md:h-10 rounded-lg text-xs font-semibold bg-[rgba(16,185,129,0.15)] text-[var(--brand-green)] hover:bg-[rgba(16,185,129,0.25)] transition-all disabled:opacity-30">Deploy</button>
+                   <button onClick={() => { setIsPlanningMode(false); setActiveRoute(droneRoute); setTempWaypoints([]); setThreatProfile(null); }}
+                     className="px-2 md:px-3 h-8 md:h-10 rounded-lg text-xs font-semibold bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] hover:bg-[rgba(255,255,255,0.1)] transition-all">Cancel</button>
+                 </>
+              ) : (
+                <>
+                  <button onClick={() => { setIsPlanningMode(true); reset(); setTempWaypoints([]); setThreatProfile(null); }}
+                     className="px-3 h-8 md:h-10 rounded-lg text-[10px] md:text-[11px] font-bold uppercase tracking-wider bg-[rgba(245,158,11,0.15)] border border-[rgba(245,158,11,0.3)] text-[var(--brand-amber)] hover:bg-[rgba(245,158,11,0.25)] transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                     <span className="hidden md:inline">Plan</span> Route
+                  </button>
+                  <button onClick={() => { if (!completed) setPlaying(p => !p); }}
+                    disabled={completed || waypoints.length === 0}
+                    className="w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-lg flex items-center justify-center transition-all bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(59,130,246,0.15)] text-white disabled:opacity-50"
+                  >
+                    {playing ? <Pause size={16} /> : <Play size={16} className="translate-x-0.5" />}
+                  </button>
+                  <button onClick={reset}
+                    className="w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-lg flex items-center justify-center transition-all hover:bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] hover:text-white"
+                  >
+                    <RotateCcw size={14} />
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -94,7 +210,7 @@ export default function DroneSimulator({ events, agentDone, incidents = [] }) {
             {playing && <div className="absolute left-0 right-0 h-1 bg-[var(--brand-blue)] blur-sm opacity-30 animate-[scanline_3s_linear_infinite]" />}
 
             {/* SVG Canvas - scaling via viewBox */}
-            <svg className="w-full h-full max-w-4xl" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
+            <svg ref={svgRef} onClick={handleMapClick} className={`w-full h-full max-w-4xl relative z-10 ${isPlanningMode ? 'cursor-crosshair' : ''}`} viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
               
               <defs>
                  <linearGradient id="dronePathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -144,14 +260,27 @@ export default function DroneSimulator({ events, agentDone, incidents = [] }) {
                 const y1 = normalize(wp.coords[0], 51.502, 51.512, 350, 50);
                 const x2 = normalize(next.coords[1], -0.098, -0.083, 50, 750);
                 const y2 = normalize(next.coords[0], 51.502, 51.512, 350, 50);
-                const isActive = i < currentWaypoint;
+                
+                let lineProps = {};
+                if (isPlanningMode) {
+                   lineProps = {
+                     stroke: "rgba(16,185,129,0.8)",
+                     strokeWidth: 2,
+                     strokeDasharray: "4 4"
+                   };
+                } else {
+                   const isActive = i < currentWaypoint;
+                   lineProps = {
+                     stroke: isActive ? "url(#dronePathGradient)" : "rgba(255,255,255,0.05)",
+                     strokeWidth: isActive ? 3 : 2,
+                     strokeDasharray: isActive ? "none" : "4 6"
+                   };
+                }
                 
                 return (
                   <line key={`path-${i}`} x1={x1} y1={y1} x2={x2} y2={y2}
-                    stroke={isActive ? "url(#dronePathGradient)" : "rgba(255,255,255,0.05)"}
-                    strokeWidth={isActive ? 3 : 2}
-                    strokeDasharray={isActive ? "none" : "4 6"}
-                    className="transition-all duration-1000 ease-in-out" />
+                    {...lineProps}
+                    className="transition-all duration-1000 ease-in-out pointer-events-none" />
                 );
               })}
 
@@ -174,25 +303,62 @@ export default function DroneSimulator({ events, agentDone, incidents = [] }) {
                     
                     {/* Node */}
                     <circle
-                      cx={x} cy={y} r={isActive ? 6 : 4}
-                      fill={isActive ? "#fff" : isPast ? "var(--brand-blue)" : "rgba(255,255,255,0.2)"}
-                      filter={isActive ? "url(#glow)" : "none"}
-                      className="transition-all duration-300"
+                      cx={x} cy={y} r={isActive && !isPlanningMode ? 6 : 4}
+                      fill={isActive && !isPlanningMode ? "#fff" : isPlanningMode ? "var(--brand-green)" : isPast ? "var(--brand-blue)" : "rgba(255,255,255,0.2)"}
+                      filter={isActive && !isPlanningMode ? "url(#glow)" : "none"}
+                      className="transition-all duration-300 pointer-events-none"
                     />
-                    
-                    {/* Active label */}
-                    {isActive && (
-                       <g className="transition-opacity duration-300">
-                         <rect x={x - 20} y={y - 30} width="40" height="16" rx="4" fill="rgba(59,130,246,0.2)" stroke="var(--brand-blue)" strokeWidth="1" />
-                         <text x={x} y={y - 19} textAnchor="middle" fill="#fff" fontSize="9" fontWeight="bold" fontFamily="monospace">SD-7</text>
-                       </g>
-                    )}
                   </g>
                 );
               })}
+
+              {/* Single smooth drone cursor */}
+              {!isPlanningMode && waypoints.length > 0 && (
+                <g style={{ transform: `translate(${droneX}px, ${droneY}px)` }} className="transition-transform duration-[1500ms] ease-linear pointer-events-none">
+                  {/* Drone cursor radar pulse */}
+                  <circle cx="0" cy="0" r="20" fill="none" stroke="var(--brand-blue)" strokeWidth="1" opacity="0.8">
+                    <animate attributeName="r" from="5" to="35" dur="1.5s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" from="0.8" to="0" dur="1.5s" repeatCount="indefinite" />
+                  </circle>
+                  
+                  {/* Active label */}
+                  <g className="transition-opacity duration-300">
+                     <rect x="-20" y="-30" width="40" height="16" rx="4" fill="rgba(59,130,246,0.2)" stroke="var(--brand-blue)" strokeWidth="1" />
+                     <text x="0" y="-19" textAnchor="middle" fill="#fff" fontSize="9" fontWeight="bold" fontFamily="monospace">{activeRoute.droneId || "SD-7"}</text>
+                  </g>
+                </g>
+              )}
             </svg>
 
             {/* Overlays */}
+            {isPlanningMode && (
+              <div className="absolute top-4 right-4 z-20">
+                <div className="glass px-3 py-3 rounded-xl flex flex-col gap-2 w-64 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+                  <span className="text-[10px] text-[var(--brand-amber)] uppercase font-bold tracking-wider mb-1">Manual Coordinates</span>
+                  <div className="flex items-center gap-2">
+                    <input type="number" placeholder="Lat (e.g. 51.507)" value={manualLat} onChange={(e) => setManualLat(e.target.value)} 
+                       className="w-full bg-[rgba(0,0,0,0.3)] border border-[rgba(255,255,255,0.1)] rounded px-2 py-1.5 text-xs text-white" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="number" placeholder="Lng (e.g. -0.091)" value={manualLng} onChange={(e) => setManualLng(e.target.value)} 
+                       className="w-full bg-[rgba(0,0,0,0.3)] border border-[rgba(255,255,255,0.1)] rounded px-2 py-1.5 text-xs text-white" />
+                  </div>
+                  <button onClick={handleAddManualCoords} className="mt-1 w-full flex items-center justify-center bg-[rgba(16,185,129,0.15)] text-[var(--brand-green)] border border-[rgba(16,185,129,0.3)] rounded hover:bg-[rgba(16,185,129,0.25)] transition-colors py-1.5 text-xs font-bold uppercase tracking-wider">
+                    Add Point
+                  </button>
+                  {tempWaypoints.length > 0 && (
+                     <button onClick={analyzeThreat} className="w-full flex items-center justify-center gap-1.5 bg-[rgba(245,158,11,0.15)] text-[var(--brand-amber)] border border-[rgba(245,158,11,0.3)] rounded hover:bg-[rgba(245,158,11,0.25)] transition-colors py-1.5 text-xs font-bold uppercase tracking-wider">
+                       <ShieldAlert size={12} /> Analyze Threat
+                     </button>
+                  )}
+                </div>
+              </div>
+            )}
+            {isPlanningMode && tempWaypoints.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center font-mono opacity-60 text-sm text-[var(--brand-amber)] pointer-events-none z-0">
+                 Tap map to plot manual waypoints
+              </div>
+            )}
             {completed && (
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="absolute inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.6)] backdrop-blur-md">
                 <div className="glass p-8 rounded-2xl flex flex-col items-center border border-emerald-500/30 text-center shadow-[0_0_30px_rgba(16,185,129,0.2)]">
@@ -244,8 +410,38 @@ export default function DroneSimulator({ events, agentDone, incidents = [] }) {
       </div>
 
       {/* Right panel: Observations & Agent Context */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 h-full overflow-y-auto pr-2 custom-scrollbar">
         
+        {threatProfile && (
+           <motion.div initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, scale:0.95 }}
+             className={`glass-panel p-5 rounded-2xl shrink-0 border bg-gradient-to-br ${threatProfile.isRestricted ? "from-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.4)]" : "from-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.4)]"} to-transparent`}
+           >
+             <div className="flex items-center gap-2 mb-4">
+               <ShieldAlert size={18} className={threatProfile.isRestricted ? "text-[var(--brand-red)] animate-pulse" : "text-[var(--brand-green)]"} />
+               <span className="text-sm font-bold uppercase tracking-wider text-white">Threat Intelligence Sync</span>
+             </div>
+             
+             <div className="grid grid-cols-2 gap-3 mb-4">
+               <div className="bg-[rgba(0,0,0,0.3)] rounded-lg p-2 border border-[rgba(255,255,255,0.05)]">
+                 <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] flex items-center gap-1"><Target size={10}/> Location</div>
+                 <div className="font-mono text-xs text-[var(--brand-blue)] mt-1">{threatProfile.lat}, {threatProfile.lng}</div>
+               </div>
+               <div className="bg-[rgba(0,0,0,0.3)] rounded-lg p-2 border border-[rgba(255,255,255,0.05)]">
+                 <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] flex items-center gap-1"><Wind size={10}/> Windspeed</div>
+                 <div className="font-mono text-xs text-white mt-1">{threatProfile.wind}</div>
+               </div>
+               <div className="bg-[rgba(0,0,0,0.3)] rounded-lg p-2 border border-[rgba(255,255,255,0.05)] col-span-2">
+                 <div className="text-[10px] uppercase font-bold text-[var(--text-muted)] flex items-center gap-1"><Camera size={10}/> Live Camera Feed</div>
+                 <div className="font-mono text-sm text-[var(--text-secondary)] mt-1">{threatProfile.camera} (Targeting: {threatProfile.zone})</div>
+               </div>
+             </div>
+
+             <div className={`text-xs leading-relaxed p-3 rounded-lg border ${threatProfile.isRestricted ? "bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.2)] text-[var(--brand-red)]" : "bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.2)] text-emerald-400"}`}>
+               {threatProfile.threat}
+             </div>
+           </motion.div>
+        )}
+
         {/* Drone Specs Widget */}
         <div className="glass-panel p-5 rounded-2xl shrink-0">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-4">
@@ -253,7 +449,7 @@ export default function DroneSimulator({ events, agentDone, incidents = [] }) {
           </div>
           <div className="space-y-3">
              {[
-               { label: "Hardware ID", value: droneRoute.droneId, highlight: true },
+               { label: "Hardware ID", value: activeRoute.droneId || "SD-7", highlight: true },
                { label: "Sensor Mode", value: "Therm+Optical", highlight: true },
                { label: "Altitude", value: "35m ATGL", highlight: false },
                { label: "Wind Shear", value: "Nominal (8kts)", highlight: false },
@@ -348,4 +544,8 @@ export default function DroneSimulator({ events, agentDone, incidents = [] }) {
 
 function normalize(val, min, max, outMin, outMax) {
   return outMin + ((val - min) / (max - min)) * (outMax - outMin);
+}
+
+function unnormalize(val, min, max, outMin, outMax) {
+  return min + ((val - outMin) / (outMax - outMin)) * (max - min);
 }

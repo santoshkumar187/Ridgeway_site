@@ -52,6 +52,17 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  // Responsive sidebar handling
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) setIsSidebarOpen(false);
+      else setIsSidebarOpen(true);
+    };
+    handleResize(); // Initialize on mount
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const startInvestigation = async () => {
     if (agentRunning || agentDone) return;
     setAgentRunning(true);
@@ -100,11 +111,17 @@ export default function Home() {
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--surface-0)]">
       
+      {/* ── MOBILE OVERLAY ── */}
+      <div 
+        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity duration-300 ${isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
       {/* ── SIDEBAR NAVIGATION ── */}
       <motion.aside 
-        initial={{ width: 280 }}
+        initial={false}
         animate={{ width: isSidebarOpen ? 280 : 80 }}
-        className="h-full glass-panel flex flex-col z-40 border-r border-[var(--border-subtle)] shrink-0 transition-all duration-300"
+        className={`absolute lg:relative top-0 left-0 h-full glass-panel flex flex-col z-50 border-r border-[var(--border-subtle)] shrink-0 transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="p-4 flex items-center gap-3 border-b border-[var(--border-subtle)] h-16">
           <div className="relative w-8 h-8 shrink-0">
@@ -175,41 +192,41 @@ export default function Home() {
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         
         {/* Top Header Row */}
-        <header className="h-16 glass z-30 flex items-center justify-between px-6 shrink-0 border-b border-[var(--border-subtle)]">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] hover:text-white transition-colors">
+        <header className="h-16 flex-col md:flex-row glass z-30 flex md:items-center justify-between px-4 md:px-6 shrink-0 border-b border-[var(--border-subtle)] overflow-x-auto custom-scrollbar">
+          <div className="flex items-center gap-2 md:gap-4 my-2 md:my-0">
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 -ml-2 rounded-lg hover:bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] hover:text-white transition-colors lg:hidden">
               <Menu size={20} />
             </button>
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-semibold tracking-wide flex items-center gap-2 text-[var(--text-primary)]">
+              <h1 className="text-base md:text-lg font-semibold tracking-wide flex items-center gap-2 text-[var(--text-primary)]">
                 {TABS.find(t => t.id === activeTab)?.label}
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6 pb-2 md:pb-0">
             {/* Live Clock / Status */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.2)]">
+            <div className="flex items-center gap-2 md:gap-3 shrink-0">
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.2)]">
                 <span className="dot-pulse active" />
                 <span className="text-xs font-medium text-emerald-400">System Secure</span>
               </div>
-              <div className="text-sm font-mono px-3 py-1.5 rounded text-[var(--brand-amber)] bg-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.2)] shadow-[inset_0_0_10px_rgba(245,158,11,0.05)]">
+              <div className="text-xs md:text-sm font-mono px-2 md:px-3 py-1.5 rounded text-[var(--brand-amber)] bg-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.2)] shadow-[inset_0_0_10px_rgba(245,158,11,0.05)]">
                 {currentTime}
               </div>
             </div>
 
-            <div className="h-6 w-px bg-[var(--border-medium)]"></div>
+            <div className="hidden md:block h-6 w-px bg-[var(--border-medium)]"></div>
 
             {/* Metrics */}
-            <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-3 shrink-0">
               <StatChip icon={AlertOctagon} value={highCount} color="var(--brand-red)" />
               <StatChip icon={Bell} value={escalateCount} color="var(--brand-amber)" />
               <StatChip icon={CheckCircle} value={reviewedCount} color="var(--brand-green)" />
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 ml-2">
+            <div className="flex gap-2 shrink-0">
                {!agentDone && (
                 <button
                   onClick={startInvestigation}
@@ -224,7 +241,7 @@ export default function Home() {
                 </button>
               )}
               {agentDone && (
-                <div className="px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-[rgba(16,185,129,0.15)] text-emerald-400 border border-emerald-500/30">
+                <div className="px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs font-semibold flex items-center gap-2 bg-[rgba(16,185,129,0.15)] text-emerald-400 border border-emerald-500/30">
                   <CheckCircle size={14} /> Analysis Complete
                 </div>
               )}
@@ -249,7 +266,7 @@ export default function Home() {
         </motion.div>
 
         {/* Dynamic Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
+        <div className="flex-1 overflow-y-auto p-3 md:p-6 scroll-smooth">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -261,8 +278,8 @@ export default function Home() {
             >
               {/* OVERVIEW TAB */}
               {activeTab === "overview" && (
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
-                  <div className="xl:col-span-2 flex flex-col gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:h-full">
+                  <div className="lg:col-span-2 flex flex-col gap-4 md:gap-6">
                     <AgentPanel
                       steps={agentSteps}
                       running={agentRunning}
@@ -278,7 +295,7 @@ export default function Home() {
                       agentDone={agentDone}
                     />
                   </div>
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-4 md:gap-6">
                     <SummaryCard events={events} agentDone={agentDone} />
                     <AnimatePresence mode="wait">
                       {selectedEvent ? (
@@ -319,7 +336,7 @@ export default function Home() {
 
               {/* MAP TAB */}
               {activeTab === "map" && (
-                <div className="glass-panel rounded-2xl overflow-hidden h-full relative shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+                <div className="glass-panel rounded-2xl overflow-hidden h-full min-h-[500px] relative shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
                   <SiteMap
                     events={events}
                     focusEvent={mapFocusEvent}

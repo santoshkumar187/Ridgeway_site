@@ -23,17 +23,17 @@ export default function EventTimeline({ events, selectedEvent, onSelectEvent, on
   const filtered = filter === "all" ? events : events.filter(e => e.type === filter || (filter === "escalate" && e.aiAssessment?.verdict === "escalate"));
 
   return (
-    <div className="glass-panel p-5 rounded-2xl flex flex-col h-full max-h-[800px]">
-      <div className="flex items-start justify-between mb-5 shrink-0">
+    <div className="glass-panel p-3 md:p-5 rounded-2xl flex flex-col h-full max-h-[80vh] md:max-h-[800px]">
+      <div className="flex items-start justify-between mb-4 md:mb-5 shrink-0 flex-wrap gap-2">
         <div>
           <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-secondary)]">Overnight Events</h2>
-          <div className="text-xs mt-1 text-[var(--text-muted)] flex items-center gap-2">
+          <div className="text-[10px] md:text-xs mt-1 text-[var(--text-muted)] flex items-center gap-2">
             <span className="px-2 py-0.5 rounded bg-[rgba(255,255,255,0.05)] font-mono">22:00 – 06:10</span>
             <span>{events.length} total events</span>
           </div>
         </div>
         {agentDone && (
-          <div className="text-xs px-2.5 py-1 rounded-md font-bold flex items-center gap-1.5"
+          <div className="text-[10px] md:text-xs px-2 md:px-2.5 py-1 rounded-md font-bold flex items-center gap-1.5 whitespace-nowrap hidden sm:flex"
             style={{ background: "rgba(239,68,68,0.15)", color: "var(--brand-red)", border: "1px solid rgba(239,68,68,0.3)" }}>
             <AlertTriangle size={12} />
             {events.filter(e => e.aiAssessment?.verdict === "escalate").length} to escalate
@@ -42,8 +42,8 @@ export default function EventTimeline({ events, selectedEvent, onSelectEvent, on
       </div>
 
       {/* Filter bar */}
-      <div className="flex items-center gap-2 mb-4 shrink-0 overflow-x-auto pb-2 -mx-1 px-1 custom-scrollbar">
-        <Filter size={14} className="text-[var(--text-muted)] mr-1" />
+      <div className="flex items-center gap-2 mb-4 shrink-0 overflow-x-auto pb-2 -mx-1 px-1 custom-scrollbar scroll-smooth snap-x">
+        <Filter size={14} className="text-[var(--text-muted)] mr-1 shrink-0" />
         {[
           { id: "all", label: "All Events" },
           { id: "escalate", label: "Escalations", hidden: !agentDone },
@@ -54,7 +54,7 @@ export default function EventTimeline({ events, selectedEvent, onSelectEvent, on
           { id: "signal_anomaly", label: "Signals" },
         ].filter(f => !f.hidden).map(f => (
           <button key={f.id} onClick={() => setFilter(f.id)}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border shrink-0"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border shrink-0 snap-start"
             style={{
               background: filter === f.id ? "rgba(59,130,246,0.15)" : "rgba(255,255,255,0.03)",
               border: filter === f.id ? "1px solid rgba(59,130,246,0.4)" : "1px solid var(--border-subtle)",
@@ -67,9 +67,9 @@ export default function EventTimeline({ events, selectedEvent, onSelectEvent, on
       </div>
 
       {/* Timeline List */}
-      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 relative">
+      <div className="flex-1 overflow-y-auto pr-1 md:pr-2 custom-scrollbar space-y-3 relative">
         {/* Timeline structural line */}
-        <div className="absolute left-[25px] top-4 bottom-4 w-px bg-gradient-to-b from-[var(--border-subtle)] via-[var(--border-medium)] to-[var(--border-subtle)]" />
+        <div className="absolute left-[16px] md:left-[25px] top-4 bottom-4 w-px bg-gradient-to-b from-[var(--border-subtle)] via-[var(--border-medium)] to-[var(--border-subtle)]" />
         
         <AnimatePresence>
           {filtered.map((event, index) => (
@@ -113,16 +113,16 @@ function EventRow({ event, index, selected, onSelect, onVerdict, onFocusMap, age
        <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none`}
             style={{ background: `radial-gradient(circle at 50% 50%, color-mix(in srgb, ${config.color} 50%, transparent) 0%, transparent 70%)` }} />
 
-      <div className="flex items-start gap-4 px-3 py-3 w-full">
+      <div className="flex items-start gap-2 md:gap-4 px-2 md:px-3 py-3 w-full">
         {/* Icon & connecting line area */}
         <div className="flex flex-col items-center shrink-0 mt-1 pl-1">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 transition-shadow ${selected ? 'shadow-[0_0_15px_currentColor]' : ''}`}
+          <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center shrink-0 z-10 transition-shadow ${selected ? 'shadow-[0_0_15px_currentColor]' : ''}`}
             style={{ 
               background: `color-mix(in srgb, ${config.color} 15%, transparent)`, 
               border: `1px solid color-mix(in srgb, ${config.color} 40%, transparent)`,
               color: config.color 
             }}>
-            <Icon size={14} />
+            <Icon size={12} className="md:w-3.5 md:h-3.5" />
           </div>
         </div>
 

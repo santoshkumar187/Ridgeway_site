@@ -43,7 +43,7 @@ __turbopack_context__.v((parentImport) => {
 
 __turbopack_context__.v((parentImport) => {
     return Promise.all([
-  "static/chunks/_0x~6d24._.js",
+  "static/chunks/_0_2c~0a._.js",
   "static/chunks/components_BriefingPanel_0de994q.js"
 ].map((chunk) => __turbopack_context__.l(chunk))).then(() => {
         return parentImport("[project]/components/BriefingPanel.js [app-client] (ecmascript, next/dynamic entry)");
@@ -54,7 +54,8 @@ __turbopack_context__.v((parentImport) => {
 
 __turbopack_context__.v((parentImport) => {
     return Promise.all([
-  "static/chunks/_0n9~a4b._.js",
+  "static/chunks/components_DroneSimulator_0x-oq1y.js",
+  "static/chunks/node_modules_lucide-react_dist_esm_icons_0vthk92._.js",
   "static/chunks/components_DroneSimulator_0de994q.js"
 ].map((chunk) => __turbopack_context__.l(chunk))).then(() => {
         return parentImport("[project]/components/DroneSimulator.js [app-client] (ecmascript, next/dynamic entry)");

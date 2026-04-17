@@ -49,10 +49,17 @@ html, body {
 }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: var(--surface-4); }
+@media (min-width: 768px) {
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--surface-4); }
+}
+@media (max-width: 767px) {
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+}
 
 /* Glassmorphism Utilities */
 .glass {
@@ -379,4 +386,56 @@ body::before {
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(143, 156, 167, 0.45) transparent;
+}
+
+/* --- PDF Print Export Overrides --- */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .hide-on-print {
+    display: none !important;
+  }
+  
+  header, nav, aside {
+    display: none !important;
+  }
+  
+  .glass-panel {
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  
+  .print-only-block {
+    display: block !important;
+  }
+  
+  .print-container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .print-wrapper {
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+  }
+  
+  .prose-dark {
+    color: #111 !important;
+  }
+  
+  .prose-dark p {
+    color: #333 !important;
+  }
+  
+  .text-white {
+    color: black !important;
+  }
 }

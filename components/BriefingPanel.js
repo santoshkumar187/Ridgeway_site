@@ -1,13 +1,25 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, CheckCircle, AlertTriangle, Edit3, Lock, Unlock, ArrowRight, Cpu, CheckSquare } from "lucide-react";
+import { FileText, CheckCircle, AlertTriangle, Edit3, Lock, Unlock, ArrowRight, Cpu, CheckSquare, Send, Printer } from "lucide-react";
 import { MORNING_BRIEFING } from "../lib/agent";
 
 export default function BriefingPanel({ events, agentDone, approved, onApprove }) {
   const [editingSection, setEditingSection] = useState(null);
   const [overrides, setOverrides] = useState({});
   const [activeSection, setActiveSection] = useState("summary");
+  const [emailStatus, setEmailStatus] = useState("idle"); // idle, sending, sent
+
+  const handleSimulateEmail = () => {
+    setEmailStatus("sending");
+    setTimeout(() => {
+       setEmailStatus("sent");
+    }, 2500);
+  };
+
+  const handlePrintPdf = () => {
+    window.print();
+  };
 
   if (!agentDone) {
     return (
@@ -88,7 +100,7 @@ export default function BriefingPanel({ events, agentDone, approved, onApprove }
            {!approved ? (
             <button onClick={onApprove}
               disabled={pendingCount > 0}
-              className="w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all relative overflow-hidden group border"
+              className="w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all relative overflow-hidden group border hide-on-print"
               style={{
                 background: pendingCount > 0 ? "rgba(255,255,255,0.03)" : "rgba(16,185,129,0.1) linear-gradient(to right, transparent, rgba(16,185,129,0.2), transparent)",
                 borderColor: pendingCount > 0 ? "var(--border-subtle)" : "rgba(16,185,129,0.4)",
@@ -99,18 +111,48 @@ export default function BriefingPanel({ events, agentDone, approved, onApprove }
               {pendingCount > 0 ? (
                 <><Lock size={14} className="opacity-50" /> Review Incomplete</>
               ) : (
-                <><CheckCircle size={14} /> Send to Leadership</>
+                <><CheckCircle size={14} /> Approve Document</>
               )}
             </button>
           ) : (
-            <div className="w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-[rgba(16,185,129,0.15)] border border-[rgba(16,185,129,0.4)] text-[var(--brand-green)] shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-              <CheckCircle size={14} /> Approved & Sent
+            <div className="flex flex-col gap-2 hide-on-print">
+              <div className="w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest flex flex-col items-center justify-center gap-1 bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.25)] text-[var(--brand-green)] mb-1">
+                <CheckCircle size={14} className="mb-0.5" /> Ops Approved
+              </div>
+              
+              <button 
+                 onClick={handlePrintPdf}
+                 className="w-full py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.1)] transition-colors text-white"
+              >
+                <Printer size={14} /> Export as PDF
+              </button>
+              
+              <button 
+                 onClick={emailStatus === 'idle' ? handleSimulateEmail : null}
+                 disabled={emailStatus !== 'idle'}
+                 className="w-full py-2.5 rounded-lg text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors relative overflow-hidden disabled:opacity-80 disabled:cursor-not-allowed"
+                 style={{
+                    background: emailStatus === 'sent' ? 'rgba(16,185,129,0.15)' : 'rgba(59,130,246,0.15)',
+                    border: emailStatus === 'sent' ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(59,130,246,0.3)',
+                    color: emailStatus === 'sent' ? 'var(--brand-green)' : 'var(--brand-blue)'
+                 }}
+              >
+                 {emailStatus === 'idle' && <><Send size={14} /> Dispatch via Resend</>}
+                 {emailStatus === 'sending' && (
+                    <>
+                      <div className="absolute inset-0 bg-blue-500/20 animate-pulse"></div>
+                      <div className="w-3 h-3 border-2 border-[var(--brand-blue)] border-t-transparent rounded-full animate-spin"></div>
+                      Establishing SMTP...
+                    </>
+                 )}
+                 {emailStatus === 'sent' && <><CheckCircle size={14} /> Sent to Nisha</>}
+              </button>
             </div>
           )}
         </div>
 
         {/* Dynamic Index Navigation */}
-        <div className="glass-panel p-5 rounded-2xl flex-1 border border-[var(--border-subtle)]">
+        <div className="glass-panel p-5 rounded-2xl flex-1 border border-[var(--border-subtle)] hide-on-print">
           <h3 className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-4 pb-2 border-b border-[rgba(255,255,255,0.05)]">Document Index</h3>
           <div className="space-y-1.5 relative">
              <div className="absolute left-[7px] top-2 bottom-2 w-px bg-[rgba(255,255,255,0.05)]" />
@@ -136,9 +178,9 @@ export default function BriefingPanel({ events, agentDone, approved, onApprove }
         </div>
       </div>
 
-      {/* Right Content: The Document Page */}
-      <div className="xl:col-span-3">
-         <div className="glass-panel h-full rounded-3xl bg-[rgba(10,15,25,0.8)] border border-[var(--border-subtle)] overflow-y-auto custom-scrollbar relative shadow-[inset_0_0_60px_rgba(0,0,0,0.5)]">
+      {/* Right Content: The Document Page (Main Print Target) */}
+      <div className="xl:col-span-3 print-container">
+         <div className="glass-panel h-full rounded-3xl bg-[rgba(10,15,25,0.8)] border border-[var(--border-subtle)] overflow-y-auto custom-scrollbar relative shadow-[inset_0_0_60px_rgba(0,0,0,0.5)] print-wrapper">
             <AnimatePresence mode="wait">
               {sections.map(([key, section]) =>
                 activeSection === key ? (
@@ -156,6 +198,22 @@ export default function BriefingPanel({ events, agentDone, approved, onApprove }
                 ) : null
               )}
             </AnimatePresence>
+          {/* Fallback to render ALL sections simultaneously during print so they appear in the PDF! */}
+          <div className="hidden print-only-block print:block">
+            {sections.map(([key, section]) => (
+               <BriefingSection
+                  key={`print-${key}`}
+                  sectionKey={key}
+                  section={section}
+                  content={getContent(key)}
+                  editing={false}
+                  approved={approved}
+                  onEdit={() => {}}
+                  onSave={() => {}}
+                  onCancel={() => {}}
+               />
+            ))}
+          </div>
          </div>
       </div>
     </div>
@@ -183,13 +241,13 @@ function BriefingSection({ sectionKey, section, content, editing, approved, onEd
         
         {!approved && !editing && (
           <button onClick={onEdit}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] text-[var(--text-secondary)] hover:text-white"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border border-[rgba(255,255,255,0.1)] text-[var(--text-secondary)] hover:text-white hide-on-print"
           >
             <Edit3 size={14} /> Edit Draft
           </button>
         )}
         {approved && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--brand-green)] font-mono bg-[rgba(16,185,129,0.1)] rounded border border-emerald-500/20">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[var(--brand-green)] font-mono bg-[rgba(16,185,129,0.1)] rounded border border-emerald-500/20 hide-on-print">
             <Lock size={12} /> SECURED
           </div>
         )}

@@ -47,26 +47,26 @@ export default function AgentPanel({ steps, running, done, onStart }) {
   const progress = done ? 100 : Math.round((steps.length / AGENT_INVESTIGATION_STEPS.length) * 100);
 
   return (
-    <div className="glass-panel p-5 rounded-2xl flex flex-col shrink-0 border border-[var(--border-medium)] relative overflow-hidden">
+    <div className="glass-panel p-4 md:p-5 rounded-2xl flex flex-col shrink-0 border border-[var(--border-medium)] relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--brand-amber)] opacity-5 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3" />
 
       {/* Header */}
-      <div className="flex items-center gap-4 mb-5 relative z-10">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[rgba(245,158,11,0.2)] to-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.3)] shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+      <div className="flex flex-wrap items-center gap-2 md:gap-4 mb-5 relative z-10">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[rgba(245,158,11,0.2)] to-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.3)] shadow-[0_0_15px_rgba(245,158,11,0.15)] shrink-0">
           <Cpu size={20} className={running ? "text-[var(--brand-amber)] animate-pulse-amber" : "text-[var(--brand-amber)]"} />
         </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-[200px]">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-bold tracking-wide text-white">AI Investigator Core</span>
             {running && (
-              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-[0_0_10px_rgba(245,158,11,0.3)] bg-[rgba(245,158,11,0.15)] text-[var(--brand-amber)] border border-[rgba(245,158,11,0.3)] flex items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-[0_0_10px_rgba(245,158,11,0.3)] bg-[rgba(245,158,11,0.15)] text-[var(--brand-amber)] border border-[rgba(245,158,11,0.3)] flex items-center gap-1.5 whitespace-nowrap">
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-amber)] animate-ping" />
                 Active
               </span>
             )}
             {done && (
-              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-[0_0_10px_rgba(16,185,129,0.2)] bg-[rgba(16,185,129,0.15)] text-[var(--brand-green)] border border-[rgba(16,185,129,0.3)] flex items-center gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded shadow-[0_0_10px_rgba(16,185,129,0.2)] bg-[rgba(16,185,129,0.15)] text-[var(--brand-green)] border border-[rgba(16,185,129,0.3)] flex items-center gap-1.5 whitespace-nowrap">
                 <Check size={10} />
                 Complete
               </span>
@@ -123,7 +123,7 @@ export default function AgentPanel({ steps, running, done, onStart }) {
             exit={{ height: 0, opacity: 0 }}
             className="relative z-10"
           >
-            <div ref={scrollRef} className="space-y-3 max-h-72 overflow-y-auto pr-2 custom-scrollbar bg-[rgba(0,0,0,0.2)] rounded-xl p-3 border border-[var(--border-subtle)] inset-shadow">
+            <div ref={scrollRef} className="space-y-3 max-h-[50vh] md:max-h-72 overflow-y-auto pr-2 custom-scrollbar bg-[rgba(0,0,0,0.2)] rounded-xl p-3 border border-[var(--border-subtle)] inset-shadow">
               <AnimatePresence>
                 {steps.map((item, i) => (
                   <AgentStep key={item.step.id} item={item} index={i} />

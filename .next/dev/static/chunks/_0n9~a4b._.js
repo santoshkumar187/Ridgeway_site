@@ -35,7 +35,11 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
     const [currentWaypoint, setCurrentWaypoint] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
     const [completed, setCompleted] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const intervalRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
-    const waypoints = droneRoute.waypoints;
+    const [activeRoute, setActiveRoute] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(droneRoute);
+    const [isPlanningMode, setIsPlanningMode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [tempWaypoints, setTempWaypoints] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
+    const svgRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    const waypoints = isPlanningMode ? tempWaypoints : activeRoute.waypoints;
     const reset = ()=>{
         setPlaying(false);
         setCurrentWaypoint(0);
@@ -70,8 +74,33 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
         completed,
         waypoints.length
     ]);
-    const currentObs = droneRoute.observations.filter((o)=>o.waypoint <= currentWaypoint);
+    const currentObs = isPlanningMode ? [] : activeRoute.observations ? activeRoute.observations.filter((o)=>o.waypoint <= currentWaypoint) : [];
     const followUpMission = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$intelligence$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getFollowUpMission"])(incidents);
+    const handleMapClick = (e)=>{
+        if (!isPlanningMode || !svgRef.current) return;
+        const svg = svgRef.current;
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const cursorPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+        const lng = unnormalize(cursorPt.x, -0.098, -0.083, 50, 750);
+        const lat = unnormalize(cursorPt.y, 51.502, 51.512, 350, 50);
+        const now = new Date();
+        setTempWaypoints((prev)=>[
+                ...prev,
+                {
+                    coords: [
+                        lat,
+                        lng
+                    ],
+                    label: `Manual WP-${prev.length + 1}`,
+                    time: now.toLocaleTimeString("en-GB", {
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    })
+                }
+            ]);
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "grid grid-cols-1 xl:grid-cols-3 gap-6 h-full",
         children: [
@@ -91,20 +120,20 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                             className: playing ? "animate-drone text-[var(--brand-blue)]" : "text-[var(--brand-blue)]"
                                         }, void 0, false, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 53,
+                                            lineNumber: 80,
                                             columnNumber: 16
                                         }, this),
                                         playing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                             className: "absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[var(--surface-1)]"
                                         }, void 0, false, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 54,
+                                            lineNumber: 81,
                                             columnNumber: 28
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 52,
+                                    lineNumber: 79,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -115,112 +144,189 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                 "UAS TELEMETRY: ",
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     className: "text-[var(--brand-blue)]",
-                                                    children: droneRoute.droneId
+                                                    children: "SD-7"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 58,
+                                                    lineNumber: 85,
                                                     columnNumber: 32
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 57,
+                                            lineNumber: 84,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                             className: "text-xs font-mono mt-1 text-[var(--text-muted)] flex items-center gap-3",
                                             children: [
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                                    className: "px-2 py-0.5 rounded bg-[rgba(255,255,255,0.05)]",
-                                                    children: droneRoute.name
+                                                    className: "px-2 py-0.5 rounded bg-[rgba(255,255,255,0.05)] text-emerald-400 font-bold",
+                                                    children: activeRoute.name || "Live Patrol"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 61,
+                                                    lineNumber: 88,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     children: [
-                                                        droneRoute.startTime,
+                                                        activeRoute.startTime || "--:--",
                                                         " – ",
-                                                        droneRoute.endTime
+                                                        activeRoute.endTime || "--:--"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 62,
+                                                    lineNumber: 89,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     children: "Altitude: 35m"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 63,
+                                                    lineNumber: 90,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 60,
+                                            lineNumber: 87,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 56,
+                                    lineNumber: 83,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                    className: "ml-auto flex items-center gap-3 bg-[rgba(0,0,0,0.3)] border border-[var(--border-subtle)] rounded-xl p-1.5 backdrop-blur",
-                                    children: [
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                            onClick: ()=>{
-                                                if (!completed) setPlaying((p)=>!p);
-                                            },
-                                            disabled: completed,
-                                            className: "w-10 h-10 rounded-lg flex items-center justify-center transition-all bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(59,130,246,0.15)] text-white disabled:opacity-50",
-                                            children: playing ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$pause$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Pause$3e$__["Pause"], {
-                                                size: 18
+                                    className: "ml-auto flex items-center gap-1 md:gap-3 bg-[rgba(0,0,0,0.3)] border border-[var(--border-subtle)] rounded-xl lg:p-1.5 p-1 backdrop-blur overflow-x-auto",
+                                    children: isPlanningMode ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: ()=>setTempWaypoints([]),
+                                                className: "px-2 md:px-3 h-8 md:h-10 rounded-lg text-xs font-semibold bg-[rgba(239,68,68,0.15)] text-[var(--brand-red)] hover:bg-[rgba(239,68,68,0.25)] transition-all",
+                                                children: "Clear"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 73,
-                                                columnNumber: 28
-                                            }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$play$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Play$3e$__["Play"], {
-                                                size: 18,
-                                                className: "translate-x-0.5"
+                                                lineNumber: 98,
+                                                columnNumber: 20
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: ()=>{
+                                                    if (tempWaypoints.length < 2) return;
+                                                    setActiveRoute({
+                                                        id: "manual-flight",
+                                                        name: "Manual Mission",
+                                                        droneId: "SD-7",
+                                                        startTime: tempWaypoints[0].time,
+                                                        endTime: tempWaypoints[tempWaypoints.length - 1].time,
+                                                        waypoints: tempWaypoints,
+                                                        observations: tempWaypoints.map((_, i)=>({
+                                                                waypoint: i,
+                                                                text: `Manual WP-${i + 1} reached. Sensors nominal.`
+                                                            }))
+                                                    });
+                                                    setIsPlanningMode(false);
+                                                    reset();
+                                                    setPlaying(true);
+                                                },
+                                                disabled: tempWaypoints.length < 2,
+                                                className: "px-2 md:px-3 h-8 md:h-10 rounded-lg text-xs font-semibold bg-[rgba(16,185,129,0.15)] text-[var(--brand-green)] hover:bg-[rgba(16,185,129,0.25)] transition-all disabled:opacity-30",
+                                                children: "Deploy"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 73,
-                                                columnNumber: 50
+                                                lineNumber: 100,
+                                                columnNumber: 20
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: ()=>{
+                                                    setIsPlanningMode(false);
+                                                    setActiveRoute(droneRoute);
+                                                    setTempWaypoints([]);
+                                                },
+                                                className: "px-2 md:px-3 h-8 md:h-10 rounded-lg text-xs font-semibold bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] hover:bg-[rgba(255,255,255,0.1)] transition-all",
+                                                children: "Cancel"
+                                            }, void 0, false, {
+                                                fileName: "[project]/components/DroneSimulator.js",
+                                                lineNumber: 117,
+                                                columnNumber: 20
                                             }, this)
-                                        }, void 0, false, {
-                                            fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 69,
-                                            columnNumber: 15
-                                        }, this),
-                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                            onClick: reset,
-                                            className: "w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] hover:text-white",
-                                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$rotate$2d$ccw$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__RotateCcw$3e$__["RotateCcw"], {
-                                                size: 16
+                                        ]
+                                    }, void 0, true) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: ()=>{
+                                                    setIsPlanningMode(true);
+                                                    reset();
+                                                    setTempWaypoints([]);
+                                                },
+                                                className: "px-3 h-8 md:h-10 rounded-lg text-[10px] md:text-[11px] font-bold uppercase tracking-wider bg-[rgba(245,158,11,0.15)] border border-[rgba(245,158,11,0.3)] text-[var(--brand-amber)] hover:bg-[rgba(245,158,11,0.25)] transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap",
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                        className: "hidden md:inline",
+                                                        children: "Plan"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/components/DroneSimulator.js",
+                                                        lineNumber: 124,
+                                                        columnNumber: 22
+                                                    }, this),
+                                                    " Route"
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/components/DroneSimulator.js",
+                                                lineNumber: 122,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: ()=>{
+                                                    if (!completed) setPlaying((p)=>!p);
+                                                },
+                                                disabled: completed || waypoints.length === 0,
+                                                className: "w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-lg flex items-center justify-center transition-all bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(59,130,246,0.15)] text-white disabled:opacity-50",
+                                                children: playing ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$pause$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Pause$3e$__["Pause"], {
+                                                    size: 16
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/DroneSimulator.js",
+                                                    lineNumber: 130,
+                                                    columnNumber: 32
+                                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$play$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Play$3e$__["Play"], {
+                                                    size: 16,
+                                                    className: "translate-x-0.5"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/DroneSimulator.js",
+                                                    lineNumber: 130,
+                                                    columnNumber: 54
+                                                }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 78,
-                                                columnNumber: 17
+                                                lineNumber: 126,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                onClick: reset,
+                                                className: "w-8 h-8 md:w-10 md:h-10 shrink-0 rounded-lg flex items-center justify-center transition-all hover:bg-[rgba(255,255,255,0.05)] text-[var(--text-muted)] hover:text-white",
+                                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$rotate$2d$ccw$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__RotateCcw$3e$__["RotateCcw"], {
+                                                    size: 14
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/DroneSimulator.js",
+                                                    lineNumber: 135,
+                                                    columnNumber: 21
+                                                }, this)
+                                            }, void 0, false, {
+                                                fileName: "[project]/components/DroneSimulator.js",
+                                                lineNumber: 132,
+                                                columnNumber: 19
                                             }, this)
-                                        }, void 0, false, {
-                                            fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 75,
-                                            columnNumber: 15
-                                        }, this)
-                                    ]
-                                }, void 0, true, {
+                                        ]
+                                    }, void 0, true)
+                                }, void 0, false, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 68,
+                                    lineNumber: 95,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/DroneSimulator.js",
-                            lineNumber: 51,
+                            lineNumber: 78,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -234,18 +340,20 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                     }
                                 }, void 0, false, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 86,
+                                    lineNumber: 145,
                                     columnNumber: 13
                                 }, this),
                                 playing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "absolute left-0 right-0 h-1 bg-[var(--brand-blue)] blur-sm opacity-30 animate-[scanline_3s_linear_infinite]"
                                 }, void 0, false, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 94,
+                                    lineNumber: 153,
                                     columnNumber: 25
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
-                                    className: "w-full h-full max-w-4xl",
+                                    ref: svgRef,
+                                    onClick: handleMapClick,
+                                    className: `w-full h-full max-w-4xl relative z-10 ${isPlanningMode ? 'cursor-crosshair' : ''}`,
                                     viewBox: "0 0 800 400",
                                     preserveAspectRatio: "xMidYMid meet",
                                     children: [
@@ -263,7 +371,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                             stopColor: "rgba(59,130,246,0.2)"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/DroneSimulator.js",
-                                                            lineNumber: 101,
+                                                            lineNumber: 160,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("stop", {
@@ -271,13 +379,13 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                             stopColor: "rgba(59,130,246,0.9)"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/DroneSimulator.js",
-                                                            lineNumber: 102,
+                                                            lineNumber: 161,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 100,
+                                                    lineNumber: 159,
                                                     columnNumber: 18
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("filter", {
@@ -288,7 +396,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                             result: "coloredBlur"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/DroneSimulator.js",
-                                                            lineNumber: 105,
+                                                            lineNumber: 164,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("feMerge", {
@@ -297,32 +405,32 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                                     in: "coloredBlur"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                                    lineNumber: 107,
+                                                                    lineNumber: 166,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("feMergeNode", {
                                                                     in: "SourceGraphic"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                                    lineNumber: 108,
+                                                                    lineNumber: 167,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/DroneSimulator.js",
-                                                            lineNumber: 106,
+                                                            lineNumber: 165,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 104,
+                                                    lineNumber: 163,
                                                     columnNumber: 18
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 99,
+                                            lineNumber: 158,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("g", {
@@ -338,7 +446,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                     strokeDasharray: "4 4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 115,
+                                                    lineNumber: 174,
                                                     columnNumber: 18
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("text", {
@@ -351,7 +459,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                     children: "SEC-Z/ALPHA"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 116,
+                                                    lineNumber: 175,
                                                     columnNumber: 18
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
@@ -363,7 +471,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                     strokeWidth: "1"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 118,
+                                                    lineNumber: 177,
                                                     columnNumber: 18
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("text", {
@@ -376,7 +484,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                     children: "SEC-Z/BETA"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 119,
+                                                    lineNumber: 178,
                                                     columnNumber: 18
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
@@ -389,7 +497,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                     strokeDasharray: "8 6"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 121,
+                                                    lineNumber: 180,
                                                     columnNumber: 18
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("text", {
@@ -403,13 +511,13 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                     children: "SEC-Z/RESTRICTED-C"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 122,
+                                                    lineNumber: 181,
                                                     columnNumber: 18
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 114,
+                                            lineNumber: 173,
                                             columnNumber: 15
                                         }, this),
                                         events.filter((e)=>e.type !== "drone_patrol").map((event)=>{
@@ -433,7 +541,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                         opacity: "0.3"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 132,
+                                                        lineNumber: 191,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
@@ -444,7 +552,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                         opacity: "0.6"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 133,
+                                                        lineNumber: 192,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("text", {
@@ -457,13 +565,13 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                         children: event.time
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 134,
+                                                        lineNumber: 193,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, event.id, true, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 131,
+                                                lineNumber: 190,
                                                 columnNumber: 19
                                             }, this);
                                         }),
@@ -474,19 +582,31 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                             const y1 = normalize(wp.coords[0], 51.502, 51.512, 350, 50);
                                             const x2 = normalize(next.coords[1], -0.098, -0.083, 50, 750);
                                             const y2 = normalize(next.coords[0], 51.502, 51.512, 350, 50);
-                                            const isActive = i < currentWaypoint;
+                                            let lineProps = {};
+                                            if (isPlanningMode) {
+                                                lineProps = {
+                                                    stroke: "rgba(16,185,129,0.8)",
+                                                    strokeWidth: 2,
+                                                    strokeDasharray: "4 4"
+                                                };
+                                            } else {
+                                                const isActive = i < currentWaypoint;
+                                                lineProps = {
+                                                    stroke: isActive ? "url(#dronePathGradient)" : "rgba(255,255,255,0.05)",
+                                                    strokeWidth: isActive ? 3 : 2,
+                                                    strokeDasharray: isActive ? "none" : "4 6"
+                                                };
+                                            }
                                             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
                                                 x1: x1,
                                                 y1: y1,
                                                 x2: x2,
                                                 y2: y2,
-                                                stroke: isActive ? "url(#dronePathGradient)" : "rgba(255,255,255,0.05)",
-                                                strokeWidth: isActive ? 3 : 2,
-                                                strokeDasharray: isActive ? "none" : "4 6",
-                                                className: "transition-all duration-1000 ease-in-out"
+                                                ...lineProps,
+                                                className: "transition-all duration-1000 ease-in-out pointer-events-none"
                                             }, `path-${i}`, false, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 150,
+                                                lineNumber: 224,
                                                 columnNumber: 19
                                             }, this);
                                         }),
@@ -514,7 +634,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                                 repeatCount: "indefinite"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                                lineNumber: 170,
+                                                                lineNumber: 242,
                                                                 columnNumber: 25
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("animate", {
@@ -525,28 +645,28 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                                 repeatCount: "indefinite"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                                lineNumber: 171,
+                                                                lineNumber: 243,
                                                                 columnNumber: 25
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 169,
+                                                        lineNumber: 241,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
                                                         cx: x,
                                                         cy: y,
-                                                        r: isActive ? 6 : 4,
-                                                        fill: isActive ? "#fff" : isPast ? "var(--brand-blue)" : "rgba(255,255,255,0.2)",
-                                                        filter: isActive ? "url(#glow)" : "none",
-                                                        className: "transition-all duration-300"
+                                                        r: isActive && !isPlanningMode ? 6 : 4,
+                                                        fill: isActive && !isPlanningMode ? "#fff" : isPlanningMode ? "var(--brand-green)" : isPast ? "var(--brand-blue)" : "rgba(255,255,255,0.2)",
+                                                        filter: isActive && !isPlanningMode ? "url(#glow)" : "none",
+                                                        className: "transition-all duration-300 pointer-events-none"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 176,
+                                                        lineNumber: 248,
                                                         columnNumber: 21
                                                     }, this),
-                                                    isActive && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("g", {
+                                                    isActive && !isPlanningMode && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("g", {
                                                         className: "transition-opacity duration-300",
                                                         children: [
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("rect", {
@@ -560,7 +680,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                                 strokeWidth: "1"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                                lineNumber: 186,
+                                                                lineNumber: 258,
                                                                 columnNumber: 26
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("text", {
@@ -574,27 +694,35 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                                 children: "SD-7"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                                lineNumber: 187,
+                                                                lineNumber: 259,
                                                                 columnNumber: 26
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 185,
+                                                        lineNumber: 257,
                                                         columnNumber: 24
                                                     }, this)
                                                 ]
                                             }, `wp-${i}`, true, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 166,
+                                                lineNumber: 238,
                                                 columnNumber: 19
                                             }, this);
                                         })
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 97,
+                                    lineNumber: 156,
                                     columnNumber: 13
+                                }, this),
+                                isPlanningMode && tempWaypoints.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "absolute inset-0 flex items-center justify-center font-mono opacity-60 text-sm text-[var(--brand-amber)] pointer-events-none z-0",
+                                    children: "Tap map to plot manual waypoints"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/DroneSimulator.js",
+                                    lineNumber: 269,
+                                    columnNumber: 15
                                 }, this),
                                 completed && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
                                     initial: {
@@ -616,12 +744,12 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                     className: "text-emerald-400"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 200,
+                                                    lineNumber: 277,
                                                     columnNumber: 22
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 199,
+                                                lineNumber: 276,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -629,7 +757,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                 children: "Patrol Sequence Complete"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 202,
+                                                lineNumber: 279,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -640,18 +768,18 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 203,
+                                                lineNumber: 280,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 198,
+                                        lineNumber: 275,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 197,
+                                    lineNumber: 274,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -666,14 +794,14 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                         size: 12
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 212,
+                                                        lineNumber: 289,
                                                         columnNumber: 20
                                                     }, this),
                                                     " Live Coordinates"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 211,
+                                                lineNumber: 288,
                                                 columnNumber: 18
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -685,18 +813,18 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 214,
+                                                lineNumber: 291,
                                                 columnNumber: 18
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 210,
+                                        lineNumber: 287,
                                         columnNumber: 16
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 209,
+                                    lineNumber: 286,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -719,7 +847,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                                lineNumber: 224,
+                                                                lineNumber: 301,
                                                                 columnNumber: 23
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -730,13 +858,13 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                                lineNumber: 225,
+                                                                lineNumber: 302,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 223,
+                                                        lineNumber: 300,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -754,18 +882,18 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                             }
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/DroneSimulator.js",
-                                                            lineNumber: 228,
+                                                            lineNumber: 305,
                                                             columnNumber: 24
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 227,
+                                                        lineNumber: 304,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 222,
+                                                lineNumber: 299,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -776,7 +904,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                         children: "Timestamp"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 237,
+                                                        lineNumber: 314,
                                                         columnNumber: 22
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -784,41 +912,41 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                         children: waypoints[currentWaypoint]?.time || droneRoute.startTime
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 238,
+                                                        lineNumber: 315,
                                                         columnNumber: 22
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 236,
+                                                lineNumber: 313,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 221,
+                                        lineNumber: 298,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 220,
+                                    lineNumber: 297,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/DroneSimulator.js",
-                            lineNumber: 84,
+                            lineNumber: 143,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/DroneSimulator.js",
-                    lineNumber: 49,
+                    lineNumber: 76,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/components/DroneSimulator.js",
-                lineNumber: 48,
+                lineNumber: 75,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -835,14 +963,14 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                         className: "text-[var(--brand-blue)]"
                                     }, void 0, false, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 252,
+                                        lineNumber: 329,
                                         columnNumber: 13
                                     }, this),
                                     " Sensor Array"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/DroneSimulator.js",
-                                lineNumber: 251,
+                                lineNumber: 328,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -850,7 +978,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                 children: [
                                     {
                                         label: "Hardware ID",
-                                        value: droneRoute.droneId,
+                                        value: activeRoute.droneId || "SD-7",
                                         highlight: true
                                     },
                                     {
@@ -876,7 +1004,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                 children: spec.label
                                             }, void 0, false, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 262,
+                                                lineNumber: 339,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -884,24 +1012,24 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                 children: spec.value
                                             }, void 0, false, {
                                                 fileName: "[project]/components/DroneSimulator.js",
-                                                lineNumber: 263,
+                                                lineNumber: 340,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, i, true, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 261,
+                                        lineNumber: 338,
                                         columnNumber: 17
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/components/DroneSimulator.js",
-                                lineNumber: 254,
+                                lineNumber: 331,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/DroneSimulator.js",
-                        lineNumber: 250,
+                        lineNumber: 327,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -915,7 +1043,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                         children: "Flight Log"
                                     }, void 0, false, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 272,
+                                        lineNumber: 349,
                                         columnNumber: 14
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -923,13 +1051,13 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                         children: "Verified observation stream"
                                     }, void 0, false, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 273,
+                                        lineNumber: 350,
                                         columnNumber: 14
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/DroneSimulator.js",
-                                lineNumber: 271,
+                                lineNumber: 348,
                                 columnNumber: 12
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -951,12 +1079,12 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                             children: "Awaiting telemetry. Initiate patrol to pull log data."
                                         }, void 0, false, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 283,
+                                            lineNumber: 360,
                                             columnNumber: 22
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 279,
+                                        lineNumber: 356,
                                         columnNumber: 19
                                     }, this) : currentObs.map((obs, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
                                             initial: {
@@ -978,17 +1106,17 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                             className: "text-emerald-400"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/DroneSimulator.js",
-                                                            lineNumber: 294,
+                                                            lineNumber: 371,
                                                             columnNumber: 28
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/DroneSimulator.js",
-                                                        lineNumber: 293,
+                                                        lineNumber: 370,
                                                         columnNumber: 26
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 292,
+                                                    lineNumber: 369,
                                                     columnNumber: 24
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1002,7 +1130,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/DroneSimulator.js",
-                                                            lineNumber: 298,
+                                                            lineNumber: 375,
                                                             columnNumber: 26
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1010,35 +1138,35 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                                             children: obs.text
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/DroneSimulator.js",
-                                                            lineNumber: 299,
+                                                            lineNumber: 376,
                                                             columnNumber: 26
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/DroneSimulator.js",
-                                                    lineNumber: 297,
+                                                    lineNumber: 374,
                                                     columnNumber: 24
                                                 }, this)
                                             ]
                                         }, obs.waypoint, true, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 287,
+                                            lineNumber: 364,
                                             columnNumber: 21
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 277,
+                                    lineNumber: 354,
                                     columnNumber: 14
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/DroneSimulator.js",
-                                lineNumber: 276,
+                                lineNumber: 353,
                                 columnNumber: 12
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/DroneSimulator.js",
-                        lineNumber: 270,
+                        lineNumber: 347,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$components$2f$AnimatePresence$2f$index$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimatePresence"], {
@@ -1057,7 +1185,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                     className: "absolute top-0 left-0 w-1 h-full bg-[var(--brand-amber)]"
                                 }, void 0, false, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 315,
+                                    lineNumber: 392,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1068,7 +1196,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                             className: "text-[var(--brand-amber)]"
                                         }, void 0, false, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 317,
+                                            lineNumber: 394,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1076,13 +1204,13 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                             children: "Agent Context Overlay"
                                         }, void 0, false, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 318,
+                                            lineNumber: 395,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 316,
+                                    lineNumber: 393,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1094,25 +1222,25 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                             children: "This 2.5 hour gap"
                                         }, void 0, false, {
                                             fileName: "[project]/components/DroneSimulator.js",
-                                            lineNumber: 321,
+                                            lineNumber: 398,
                                             columnNumber: 138
                                         }, this),
                                         " means the drone telemetry cannot invalidate the earlier detection."
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/DroneSimulator.js",
-                                    lineNumber: 320,
+                                    lineNumber: 397,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/DroneSimulator.js",
-                            lineNumber: 311,
+                            lineNumber: 388,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/DroneSimulator.js",
-                        lineNumber: 309,
+                        lineNumber: 386,
                         columnNumber: 9
                     }, this),
                     followUpMission && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1126,7 +1254,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                         className: "text-[var(--brand-blue)]"
                                     }, void 0, false, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 330,
+                                        lineNumber: 407,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1134,13 +1262,13 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                         children: "Suggested follow-up mission"
                                     }, void 0, false, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 331,
+                                        lineNumber: 408,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/DroneSimulator.js",
-                                lineNumber: 329,
+                                lineNumber: 406,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -1148,7 +1276,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                 children: followUpMission.title
                             }, void 0, false, {
                                 fileName: "[project]/components/DroneSimulator.js",
-                                lineNumber: 335,
+                                lineNumber: 412,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1156,7 +1284,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                 children: followUpMission.objective
                             }, void 0, false, {
                                 fileName: "[project]/components/DroneSimulator.js",
-                                lineNumber: 336,
+                                lineNumber: 413,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1167,7 +1295,7 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                         children: "Route"
                                     }, void 0, false, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 338,
+                                        lineNumber: 415,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1175,13 +1303,13 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                         children: followUpMission.route.join(" -> ")
                                     }, void 0, false, {
                                         fileName: "[project]/components/DroneSimulator.js",
-                                        lineNumber: 339,
+                                        lineNumber: 416,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/DroneSimulator.js",
-                                lineNumber: 337,
+                                lineNumber: 414,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1189,32 +1317,35 @@ function DroneSimulator({ events, agentDone, incidents = [] }) {
                                 children: followUpMission.rationale
                             }, void 0, false, {
                                 fileName: "[project]/components/DroneSimulator.js",
-                                lineNumber: 341,
+                                lineNumber: 418,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/DroneSimulator.js",
-                        lineNumber: 328,
+                        lineNumber: 405,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/DroneSimulator.js",
-                lineNumber: 247,
+                lineNumber: 324,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/DroneSimulator.js",
-        lineNumber: 46,
+        lineNumber: 73,
         columnNumber: 5
     }, this);
 }
-_s(DroneSimulator, "dPB5rG1kwT/zzjeFvrgW3p2yqDA=");
+_s(DroneSimulator, "u9Heoen4A/ZPrOIn9nRV61OWq3s=");
 _c = DroneSimulator;
 function normalize(val, min, max, outMin, outMax) {
     return outMin + (val - min) / (max - min) * (outMax - outMin);
+}
+function unnormalize(val, min, max, outMin, outMax) {
+    return min + (val - outMin) / (outMax - outMin) * (max - min);
 }
 var _c;
 __turbopack_context__.k.register(_c, "DroneSimulator");
