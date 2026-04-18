@@ -203,8 +203,15 @@ _c = IncidentBoard;
 function IncidentCard({ compact, incident, index, selected, onSelectIncident, onFocusMap }) {
     const style = PRIORITY_STYLES[incident.priority] ?? PRIORITY_STYLES.monitor;
     const reviewColor = REVIEW_COLORS[incident.reviewState] ?? "var(--text-muted)";
-    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].button, {
-        type: "button",
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$framer$2d$motion$2f$dist$2f$es$2f$render$2f$components$2f$motion$2f$proxy$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["motion"].div, {
+        role: "button",
+        tabIndex: 0,
+        onKeyDown: (e)=>{
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelectIncident(incident.id);
+            }
+        },
         initial: {
             opacity: 0,
             y: 12
@@ -218,7 +225,7 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
             delay: index * 0.05
         },
         onClick: ()=>onSelectIncident(incident.id),
-        className: `w-full rounded-[24px] border p-4 text-left transition-all duration-300 ${selected ? "shadow-[0_20px_40px_rgba(0,0,0,0.35)]" : ""}`,
+        className: `w-full cursor-pointer rounded-[24px] border p-4 text-left transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-strong)] ${selected ? "shadow-[0_20px_40px_rgba(0,0,0,0.35)]" : ""}`,
         style: {
             background: selected ? "var(--surface-panel-strong)" : "var(--surface-panel)",
             borderColor: selected ? style.border : "var(--border-subtle)"
@@ -243,7 +250,7 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                                         children: style.label
                                     }, void 0, false, {
                                         fileName: "[project]/components/IncidentBoard.js",
-                                        lineNumber: 128,
+                                        lineNumber: 135,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -251,13 +258,13 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                                         children: incident.timeWindow
                                     }, void 0, false, {
                                         fileName: "[project]/components/IncidentBoard.js",
-                                        lineNumber: 134,
+                                        lineNumber: 141,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/IncidentBoard.js",
-                                lineNumber: 127,
+                                lineNumber: 134,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -265,7 +272,7 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                                 children: incident.title
                             }, void 0, false, {
                                 fileName: "[project]/components/IncidentBoard.js",
-                                lineNumber: 138,
+                                lineNumber: 145,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -273,13 +280,13 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                                 children: incident.zone
                             }, void 0, false, {
                                 fileName: "[project]/components/IncidentBoard.js",
-                                lineNumber: 139,
+                                lineNumber: 146,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/IncidentBoard.js",
-                        lineNumber: 126,
+                        lineNumber: 133,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -294,18 +301,18 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                             size: 16
                         }, void 0, false, {
                             fileName: "[project]/components/IncidentBoard.js",
-                            lineNumber: 150,
+                            lineNumber: 157,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/IncidentBoard.js",
-                        lineNumber: 141,
+                        lineNumber: 148,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/IncidentBoard.js",
-                lineNumber: 125,
+                lineNumber: 132,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -313,7 +320,7 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                 children: incident.summary
             }, void 0, false, {
                 fileName: "[project]/components/IncidentBoard.js",
-                lineNumber: 154,
+                lineNumber: 161,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -325,7 +332,7 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                         value: incident.confidenceLabel
                     }, void 0, false, {
                         fileName: "[project]/components/IncidentBoard.js",
-                        lineNumber: 157,
+                        lineNumber: 164,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(MetricPill, {
@@ -335,13 +342,13 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                         subdued: true
                     }, void 0, false, {
                         fileName: "[project]/components/IncidentBoard.js",
-                        lineNumber: 158,
+                        lineNumber: 165,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/IncidentBoard.js",
-                lineNumber: 156,
+                lineNumber: 163,
                 columnNumber: 7
             }, this),
             !compact && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -352,7 +359,7 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                         children: "Operator question"
                     }, void 0, false, {
                         fileName: "[project]/components/IncidentBoard.js",
-                        lineNumber: 163,
+                        lineNumber: 170,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -360,13 +367,13 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                         children: incident.openQuestion
                     }, void 0, false, {
                         fileName: "[project]/components/IncidentBoard.js",
-                        lineNumber: 164,
+                        lineNumber: 171,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/IncidentBoard.js",
-                lineNumber: 162,
+                lineNumber: 169,
                 columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -380,7 +387,7 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                                 children: "Review state"
                             }, void 0, false, {
                                 fileName: "[project]/components/IncidentBoard.js",
-                                lineNumber: 170,
+                                lineNumber: 177,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -391,13 +398,13 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                                 children: incident.reviewLabel
                             }, void 0, false, {
                                 fileName: "[project]/components/IncidentBoard.js",
-                                lineNumber: 171,
+                                lineNumber: 178,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/IncidentBoard.js",
-                        lineNumber: 169,
+                        lineNumber: 176,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -413,12 +420,12 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                                     }
                                 }, void 0, false, {
                                     fileName: "[project]/components/IncidentBoard.js",
-                                    lineNumber: 177,
+                                    lineNumber: 184,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/IncidentBoard.js",
-                                lineNumber: 176,
+                                lineNumber: 183,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$up$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowUpRight$3e$__["ArrowUpRight"], {
@@ -426,19 +433,19 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
                                 className: selected ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"
                             }, void 0, false, {
                                 fileName: "[project]/components/IncidentBoard.js",
-                                lineNumber: 182,
+                                lineNumber: 189,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/IncidentBoard.js",
-                        lineNumber: 175,
+                        lineNumber: 182,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/IncidentBoard.js",
-                lineNumber: 168,
+                lineNumber: 175,
                 columnNumber: 7
             }, this)
         ]
@@ -461,14 +468,14 @@ function MetricPill({ icon: Icon, label, value, subdued = false }) {
                         className: subdued ? "text-[var(--text-muted)]" : "text-[var(--brand-amber)]"
                     }, void 0, false, {
                         fileName: "[project]/components/IncidentBoard.js",
-                        lineNumber: 193,
+                        lineNumber: 200,
                         columnNumber: 9
                     }, this),
                     label
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/IncidentBoard.js",
-                lineNumber: 192,
+                lineNumber: 199,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -476,13 +483,13 @@ function MetricPill({ icon: Icon, label, value, subdued = false }) {
                 children: value
             }, void 0, false, {
                 fileName: "[project]/components/IncidentBoard.js",
-                lineNumber: 196,
+                lineNumber: 203,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/IncidentBoard.js",
-        lineNumber: 191,
+        lineNumber: 198,
         columnNumber: 5
     }, this);
 }

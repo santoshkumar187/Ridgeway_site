@@ -108,13 +108,20 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
   const reviewColor = REVIEW_COLORS[incident.reviewState] ?? "var(--text-muted)";
 
   return (
-    <motion.button
-      type="button"
+    <motion.div
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelectIncident(incident.id);
+        }
+      }}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, delay: index * 0.05 }}
       onClick={() => onSelectIncident(incident.id)}
-      className={`w-full rounded-[24px] border p-4 text-left transition-all duration-300 ${
+      className={`w-full cursor-pointer rounded-[24px] border p-4 text-left transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-strong)] ${
         selected ? "shadow-[0_20px_40px_rgba(0,0,0,0.35)]" : ""
       }`}
       style={{
@@ -182,7 +189,7 @@ function IncidentCard({ compact, incident, index, selected, onSelectIncident, on
           <ArrowUpRight size={16} className={selected ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"} />
         </div>
       </div>
-    </motion.button>
+    </motion.div>
   );
 }
 
